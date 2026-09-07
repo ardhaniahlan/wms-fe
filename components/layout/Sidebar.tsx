@@ -8,6 +8,7 @@ export default function Sidebar() {
   
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Stock Gudang', path: '/inventories' },
     { name: 'Data Barang', path: '/items' },
     { name: 'Data Gudang', path: '/warehouses' },
     { name: 'Data Rak', path: '/locations' },
