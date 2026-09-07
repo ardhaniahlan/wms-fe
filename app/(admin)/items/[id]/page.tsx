@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getItemById, updateItem } from "../../../../services/item.service";
-import ItemForm, { AttributeRow, ItemFormData } from "@/components/features/ItemForm";
+import ItemForm, {
+  AttributeRow,
+  ItemFormData,
+} from "@/components/features/items/ItemForm";
+import { toast } from "sonner";
 
 export default function EditItemPage() {
   const router = useRouter();
@@ -12,7 +16,9 @@ export default function EditItemPage() {
 
   const [isFetching, setIsFetching] = useState(true);
   const [initialData, setInitialData] = useState<ItemFormData | null>(null);
-  const [initialAttributes, setInitialAttributes] = useState<AttributeRow[]>([]);
+  const [initialAttributes, setInitialAttributes] = useState<AttributeRow[]>(
+    [],
+  );
   const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export default function EditItemPage() {
             Object.entries(data.attributes).map(([key, value]) => ({
               key,
               value: String(value),
-            }))
+            })),
           );
         }
       } catch {
@@ -42,13 +48,24 @@ export default function EditItemPage() {
     fetchItem();
   }, [itemId]);
 
-  const handleSubmit = async (data: ItemFormData, attributes: AttributeRow[]) => {
-    const formattedAttributes = attributes.reduce((acc, row) => {
-      if (row.key.trim() !== "") acc[row.key.trim()] = row.value;
-      return acc;
-    }, {} as Record<string, string>);
+  const handleSubmit = async (
+    data: ItemFormData,
+    attributes: AttributeRow[],
+  ) => {
+    const formattedAttributes = attributes.reduce(
+      (acc, row) => {
+        if (row.key.trim() !== "") acc[row.key.trim()] = row.value;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
-    await updateItem(itemId, { id: itemId, ...data, attributes: formattedAttributes });
+    const result = await updateItem(itemId, {
+      id: itemId,
+      ...data,
+      attributes: formattedAttributes,
+    });
+    toast.success(result?.message);
     router.push("/items");
   };
 

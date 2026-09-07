@@ -5,7 +5,8 @@ import { createItem } from "../../../../services/item.service";
 import ItemForm, {
   AttributeRow,
   ItemFormData,
-} from "@/components/features/ItemForm";
+} from "@/components/features/items/ItemForm";
+import { toast } from "sonner";
 
 export default function CreateItemPage() {
   const router = useRouter();
@@ -22,7 +23,11 @@ export default function CreateItemPage() {
       {} as Record<string, string>,
     );
 
-    await createItem({...data, attributes: formattedAttributes });
+    const result = await createItem({
+      ...data,
+      attributes: formattedAttributes,
+    });
+    toast.success(result?.message);
     router.replace("/items");
   };
 

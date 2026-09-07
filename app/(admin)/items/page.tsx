@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { deleteItem, getItems } from "../../../services/item.service";
 import Link from "next/link";
 import { Item } from "@/types/item.types";
+import { toast } from "sonner";
 
 export default function ItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
@@ -24,10 +25,11 @@ export default function ItemsPage() {
     );
     if (isConfirm) {
       try {
-        await deleteItem(id);
+        const result = await deleteItem(id);
         setItems(items.filter((item) => item.id !== id));
+        toast.success(result?.message);
       } catch {
-        alert("Gagal menghapus data.");
+        toast.error("Gagal menghapus data.");
       }
     }
   };
