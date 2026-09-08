@@ -6,9 +6,14 @@ interface SearchInputProps {
   onSearch: (term: string) => void;
 }
 
-export default function SearchInput({ placeholder = "Cari...", onSearch }: SearchInputProps) {
+export default function SearchInput({
+  placeholder = "Cari...",
+  onSearch,
+}: SearchInputProps) {
   const [term, setTerm] = useState("");
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     return () => {
@@ -32,7 +37,7 @@ export default function SearchInput({ placeholder = "Cari...", onSearch }: Searc
       placeholder={placeholder}
       value={term}
       onChange={handleChange}
-      className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500 text-sm"
+      className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500 text-sm text-gray-800"
     />
   );
 }

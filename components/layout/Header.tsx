@@ -1,14 +1,23 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { logoutService } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Header() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Nanti kita tambahkan panggilan API ke backend untuk menghapus Cookie
-    // Untuk sekarang, kita arahkan kembali ke halaman publik/login
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      await logoutService();
+
+      toast.success("Berhasil keluar dari panel admin");
+
+      router.push('/');
+      router.refresh(); 
+    } catch {
+      toast.error("Gagal melakukan logout");
+    }
   };
 
   return (

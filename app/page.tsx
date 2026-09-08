@@ -1,67 +1,159 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Meta } from "@/types/meta.types";
+import SearchInput from "@/components/layout/Search";
+import Pagination from "@/components/layout/Pagination";
+import { CatalogItem } from "@/types/catalog.types";
+import { getCatalogData } from "@/services/catalog.service";
+
+export default function PublicCatalogPage() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [items, setItems] = useState<CatalogItem[]>([]);
+  const [meta, setMeta] = useState<Meta | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getCatalogData(page, search);
+        setItems(response.data);
+        setMeta(response.meta);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCatalog();
+  }, [page, search]);
+
+  const handleSearch = (term: string) => {
+    setSearch(term);
+    setPage(1);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">
+            W
+          </div>
+          <span className="text-xl font-bold text-slate-800 tracking-tight">
+            WMS<span className="text-blue-600">Portal</span>
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+        <Link
+          href="/dashboard"
+          className="text-sm font-semibold text-slate-600 border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          Login Admin
+        </Link>
+      </nav>
+
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+            Cek Ketersediaan Barang
+          </h1>
+          <p className="text-lg text-slate-500 mb-8 max-w-2xl mx-auto">
+            Cari dan pantau status ketersediaan barang di seluruh jaringan
+            gudang kami secara real-time.
+          </p>
+
+          <div className="max-w-xl mx-auto bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+            <SearchInput
+              placeholder="Cari nama barang atau kategori..."
+              onSearch={handleSearch}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-20 text-slate-500 font-medium animate-pulse">
+            Memuat data inventaris...
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-20 text-slate-500 bg-white rounded-2xl border border-slate-200">
+            Barang tidak ditemukan. Coba cek SKU atau nama lain.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col h-full"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">
+                    {item.sku}
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      item.totalStock > 10
+                        ? "bg-green-100 text-green-700"
+                        : item.totalStock > 0
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    Total: {item.totalStock}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-1 leading-tight">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-slate-500 mb-4">{item.category}</p>
+                <div className="grow"></div>
+                <div className="pt-4 border-t border-slate-100">
+                  <h4 className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                    Rincian Lokasi:
+                  </h4>
+
+                  {item.locations.length === 0 ? (
+                    <p className="text-sm text-red-500 font-medium bg-red-50 p-2 rounded text-center">
+                      Stok Kosong di Semua Gudang
+                    </p>
+                  ) : (
+                    <ul className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                      {item.locations.map((loc, idx) => (
+                        <li
+                          key={idx}
+                          className="flex justify-between items-center text-sm bg-slate-50 p-2 rounded border border-slate-100"
+                        >
+                          <div>
+                            <span className="font-medium text-slate-700 block">
+                              {loc.warehouse}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              Rak: {loc.rack}
+                            </span>
+                          </div>
+                          <span className="font-bold text-slate-800 bg-white px-2 py-1 rounded shadow-sm border border-slate-200">
+                            {loc.qty}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-12">
+          {meta && (
+            <Pagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          )}
         </div>
       </main>
     </div>

@@ -1,6 +1,5 @@
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
-import { Toaster } from 'sonner';
 
 export default function AdminLayout({
   children,
@@ -16,7 +15,6 @@ export default function AdminLayout({
         
         <main className="p-8 text-gray-800">
           {children}
-          <Toaster position='bottom-right' richColors/>
         </main>
       </div>
     </div>

@@ -1,32 +1,35 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { login } from '../../services/auth.service';
-import axios from 'axios';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "../../services/auth.service";
+import axios from "axios";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       const result = await login({ email, password });
       if (result.success) {
-        router.push('/dashboard');
+        router.replace("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Terjadi kesalahan saat login.');
+        setError(
+          err.response?.data?.message || "Terjadi kesalahan saat login.",
+        );
       } else {
-        setError('Terjadi kesalahan sistem yang tidak terduga.');
+        setError("Terjadi kesalahan sistem yang tidak terduga.");
       }
     } finally {
       setIsLoading(false);
@@ -49,7 +52,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
             <input
               type="email"
               required
@@ -61,7 +66,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
             <input
               type="password"
               required
@@ -77,7 +84,7 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:bg-blue-400"
           >
-            {isLoading ? 'Memproses...' : 'Masuk ke Sistem'}
+            {isLoading ? "Memproses..." : "Masuk ke Sistem"}
           </button>
         </form>
       </div>
