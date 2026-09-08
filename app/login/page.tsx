@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "../../services/auth.service";
 import axios from "axios";
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +20,10 @@ export default function LoginPage() {
 
     try {
       const result = await login({ email, password });
+      
       if (result.success) {
+        Cookies.set('token', result.data.token, { expires: 1 }); 
+        
         router.replace("/dashboard");
         router.refresh();
       }
