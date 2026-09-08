@@ -8,16 +8,25 @@ import {
 } from "../../../services/warehouse.service";
 import { Warehouse } from "@/types/warehouse.types";
 import { toast } from "sonner";
+import { Meta } from "@/types/meta.types";
+import Pagination from "@/components/layout/Pagination";
+import SearchInput from "@/components/layout/Search";
 
 export default function WarehousesPage() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [meta, setMeta] = useState<Meta>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchWarehouses = async () => {
+      setIsLoading(true);
       try {
-        const data = await getWarehouses();
-        setWarehouses(data);
+        const response = await getWarehouses(page, search);
+        setWarehouses(response.data);
+        setMeta(response.meta);
       } catch (error) {
         console.error(error);
       } finally {
@@ -25,7 +34,12 @@ export default function WarehousesPage() {
       }
     };
     fetchWarehouses();
-  }, []);
+  }, [page, search]);
+
+  const handleSearch = (term: string) => {
+    setSearch(term);
+    setPage(1);
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Yakin ingin menghapus gudang ${name}?`)) {
@@ -39,19 +53,24 @@ export default function WarehousesPage() {
     }
   };
 
-  if (isLoading)
-    return <div className="p-8 text-slate-500">Memuat data gudang...</div>;
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Data Gudang</h1>
-        <Link
-          href="/warehouses/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          + Tambah Gudang
-        </Link>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="w-full md:w-64">
+            <SearchInput
+              placeholder="Cari nama atau kode gudang..."
+              onSearch={handleSearch}
+            />
+          </div>
+          <Link
+            href="/warehouses/create"
+            className="bg-blue-600 whitespace-nowrap text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            + Tambah Gudang
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -65,9 +84,15 @@ export default function WarehousesPage() {
             </tr>
           </thead>
           <tbody>
-            {warehouses.length === 0 ? (
+            {isLoading ? (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-slate-400">
+                <td colSpan={3} className="p-8 text-center text-slate-500">
+                  Memuat data gudang...
+                </td>
+              </tr>
+            ) : warehouses.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="p-8 text-center text-slate-400">
                   Belum ada data gudang.
                 </td>
               </tr>
@@ -104,6 +129,14 @@ export default function WarehousesPage() {
           </tbody>
         </table>
       </div>
+
+      {meta && (
+        <Pagination
+          currentPage={meta.currentPage}
+          totalPages={meta.totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
+      )}
     </div>
   );
 }

@@ -5,19 +5,33 @@ import { deleteItem, getItems } from "../../../services/item.service";
 import Link from "next/link";
 import { Item } from "@/types/item.types";
 import { toast } from "sonner";
+import { Meta } from "@/types/meta.types";
+import Pagination from "@/components/layout/Pagination";
+import SearchInput from "@/components/layout/Search";
 
 export default function ItemsPage() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
   const [items, setItems] = useState<Item[]>([]);
+  const [meta, setMeta] = useState<Meta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchItems = async () => {
-      const data = await getItems();
-      setItems(data);
-      setIsLoading(false);
+      setIsLoading(true);
+      try {
+        const response = await getItems(page, search);
+        setItems(response.data);
+        setMeta(response.meta);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchItems();
-  }, []);
+  }, [page, search]);
 
   const handleDelete = async (id: string, name: string) => {
     const isConfirm = window.confirm(
@@ -34,6 +48,11 @@ export default function ItemsPage() {
     }
   };
 
+  const handleSearch = (term: string) => {
+    setSearch(term);
+    setPage(1);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -45,12 +64,20 @@ export default function ItemsPage() {
             Kelola semua jenis barang yang ada di gudang Anda.
           </p>
         </div>
-        <Link
-          href="/items/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors inline-block"
-        >
-          + Tambah Barang
-        </Link>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="w-full md:w-64">
+            <SearchInput
+              placeholder="Cari nama atau SKU..."
+              onSearch={handleSearch}
+            />
+          </div>
+          <Link
+            href="/items/create"
+            className="bg-blue-600 whitespace-nowrap text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            + Tambah Barang
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -115,6 +142,14 @@ export default function ItemsPage() {
           </tbody>
         </table>
       </div>
+
+      {meta && (
+        <Pagination
+          currentPage={meta.currentPage}
+          totalPages={meta.totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
+      )}
     </div>
   );
 }

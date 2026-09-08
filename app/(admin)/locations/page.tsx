@@ -5,16 +5,25 @@ import Link from "next/link";
 import { deleteRack, getRacks } from "@/services/location.service";
 import { Rack } from "@/types/rack.types";
 import { toast } from "sonner";
+import { Meta } from "@/types/meta.types";
+import SearchInput from "@/components/layout/Search";
+import Pagination from "@/components/layout/Pagination";
 
 export default function RacksPage() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
   const [racks, setRacks] = useState<Rack[]>([]);
+  const [meta, setMeta] = useState<Meta>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchRacks = async () => {
+      setIsLoading(true);
       try {
-        const data = await getRacks();
-        setRacks(data);
+        const response = await getRacks(page, search);
+        setRacks(response.data);
+        setMeta(response.meta);
       } catch (error) {
         console.error(error);
       } finally {
@@ -22,7 +31,7 @@ export default function RacksPage() {
       }
     };
     fetchRacks();
-  }, []);
+  }, [page, search]);
 
   const handleDelete = async (id: string, code: string) => {
     if (window.confirm(`Yakin ingin menghapus rak ${code}?`)) {
@@ -36,8 +45,10 @@ export default function RacksPage() {
     }
   };
 
-  if (isLoading)
-    return <div className="p-8 text-slate-500">Memuat data rak...</div>;
+  const handleSearch = (term: string) => {
+    setSearch(term);
+    setPage(1);
+  };
 
   return (
     <div>
@@ -45,12 +56,20 @@ export default function RacksPage() {
         <h1 className="text-2xl font-bold text-slate-800">
           Data Rak (Locations)
         </h1>
-        <Link
-          href="/locations/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          + Tambah Rak
-        </Link>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="w-full md:w-64">
+            <SearchInput
+              placeholder="Cari kode rak atau gudang..."
+              onSearch={handleSearch}
+            />
+          </div>
+          <Link
+            href="/racks/create"
+            className="bg-blue-600 whitespace-nowrap text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            + Tambah Rak
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -63,7 +82,13 @@ export default function RacksPage() {
             </tr>
           </thead>
           <tbody>
-            {racks.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={3} className="p-8 text-center text-slate-500">
+                  Memuat data rak...
+                </td>
+              </tr>
+            ) : racks.length === 0 ? (
               <tr>
                 <td colSpan={3} className="p-8 text-center text-slate-400">
                   Belum ada data rak.
@@ -101,6 +126,13 @@ export default function RacksPage() {
           </tbody>
         </table>
       </div>
+      {meta && (
+        <Pagination
+          currentPage={meta.currentPage}
+          totalPages={meta.totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
+      )}
     </div>
   );
 }

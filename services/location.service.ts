@@ -1,13 +1,9 @@
 import api from "@/lib/axios";
 import { CreateRackPayload, Rack } from "@/types/rack.types";
 
-export const getRacks = async () => {
-  try {
-    const response = await api.get('/locations');
-    return response.data.data;
-  } catch {
-    throw new Error('Gagal mengambil data rak');
-  }
+export const getRacks = async (page: number = 1, search: string = '') => {
+  const response = await api.get('/locations', { params: { page, search, limit: 10 } });
+  return { data: response.data.data, meta: response.data.meta };
 };
 
 export const getRackById = async (id: string) => {

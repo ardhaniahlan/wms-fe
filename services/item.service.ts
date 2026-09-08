@@ -1,13 +1,18 @@
 import { CreateItemPayload, Item } from '@/types/item.types';
 import api from '../lib/axios';
+import { Meta } from '@/types/meta.types';
 
-export const getItems = async () => {
+export const getItems = async (page: number = 1, search: string = '') => {
   try {
-    const response = await api.get('/items');
-    return response.data.data;
-  } catch (error) {
-    console.error("Gagal mengambil data barang", error);
-    return [];
+    const response = await api.get('/items', {
+      params: { page, search, limit: 10 }
+    });
+    return {
+      data: response.data.data,
+      meta: response.data.meta as Meta,
+    };
+  } catch {
+    throw new Error('Gagal mengambil data barang');
   }
 };
 

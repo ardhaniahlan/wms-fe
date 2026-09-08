@@ -4,16 +4,25 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getMutations,  } from '../../../services/mutation.service';
 import { Mutation } from '@/types/mutation.types';
+import { Meta } from '@/types/meta.types';
+import SearchInput from '@/components/layout/Search';
+import Pagination from '@/components/layout/Pagination';
 
 export default function MutationsPage() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
   const [mutations, setMutations] = useState<Mutation[]>([]);
+  const [meta, setMeta] = useState<Meta>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMutations = async () => {
+      setIsLoading(true);
       try {
-        const data = await getMutations();
-        setMutations(data);
+        const response = await getMutations(page, search);
+        setMutations(response.data);
+        setMeta(response.meta);
       } catch (error) {
         console.error(error);
       } finally {
@@ -21,17 +30,26 @@ export default function MutationsPage() {
       }
     };
     fetchMutations();
-  }, []);
+  }, [page, search]);
 
-  if (isLoading) return <div className="p-8 text-slate-500">Memuat riwayat mutasi...</div>;
+  const handleSearch = (term: string) => {
+    setSearch(term);
+    setPage(1);
+  };
+
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Mutasi Stok (Pergerakan Barang)</h1>
-        <Link href="/mutations/create" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700">
-          + Catat Mutasi
-        </Link>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="w-full md:w-64">
+            <SearchInput placeholder="Cari barang atau dokumen..." onSearch={handleSearch} />
+          </div>
+          <Link href="/mutations/create" className="bg-blue-600 whitespace-nowrap text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            + Catat Mutasi
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -47,8 +65,18 @@ export default function MutationsPage() {
             </tr>
           </thead>
           <tbody>
-            {mutations.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada riwayat mutasi.</td></tr>
+            {isLoading ? (
+              <tr>
+                <td colSpan={3} className="p-8 text-center text-slate-500">
+                  Memuat data mutasi...
+                </td>
+              </tr>
+            ) : mutations.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="p-8 text-center text-slate-400">
+                  Belum ada riwayat mutasi.
+                </td>
+              </tr>
             ) : (
               mutations.map((mut) => (
                 <tr key={mut.id} className="border-b border-slate-100 hover:bg-slate-50 text-sm">
@@ -73,6 +101,14 @@ export default function MutationsPage() {
           </tbody>
         </table>
       </div>
+
+      {meta && (
+        <Pagination 
+          currentPage={meta.currentPage} 
+          totalPages={meta.totalPages} 
+          onPageChange={(newPage) => setPage(newPage)} 
+        />
+      )}
     </div>
   );
 }
