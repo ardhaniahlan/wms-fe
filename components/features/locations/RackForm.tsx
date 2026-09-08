@@ -34,8 +34,8 @@ export default function RackForm({
   useEffect(() => {
     const fetchWarehouses = async () => {
       try {
-        const data = await getWarehouses();
-        setWarehouses(data);
+        const result = await getWarehouses();
+        setWarehouses(result.data);
       } catch {
         console.error("Gagal memuat gudang");
       } finally {
