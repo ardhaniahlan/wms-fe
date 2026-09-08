@@ -3,22 +3,25 @@
 import { logoutService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Cookies from 'js-cookie';
 
 export default function Header() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    try {
-      await logoutService();
+  try {
+    await logoutService();
 
-      toast.success("Berhasil keluar dari panel admin");
+    Cookies.remove('token');
 
-      router.push('/');
-      router.refresh(); 
-    } catch {
-      toast.error("Gagal melakukan logout");
-    }
-  };
+    toast.success("Berhasil keluar dari panel admin");
+
+    router.push('/');
+    router.refresh(); 
+  } catch {
+    toast.error("Gagal melakukan logout");
+  }
+};
 
   return (
     <header className="h-16 bg-white border-b flex items-center justify-between px-8 sticky top-0 z-10">
